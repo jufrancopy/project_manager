@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Cambio de Estado</title>
+</head>
+<body>
+    <h2>Notificación de Cambio de Estado</h2>
+    <p>Hola,</p>
+    <p>El estado del proyecto <strong>{{ project_name }}</strong> ha cambiado a <strong>{{ new_status }}</strong>.</p>
+    <p>Detalles del cambio:</p>
+    <ul>
+        <li><strong>Descripción:</strong> {{ description }}</li>
+        <li><strong>Fecha límite:</strong> {{ deadline }}</li>
+        <li><strong>Completado:</strong> {{ completed|yesno:"Sí,No" }}</li>
+    </ul>
+    <p>Gracias por usar nuestro sistema.</p>
+    <p>Saludos,</p>
+    <p>El equipo de Project Manager</p>
+</body>
+</html>

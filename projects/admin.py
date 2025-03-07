@@ -47,11 +47,15 @@ class ProjectAdmin(admin.ModelAdmin):
     acciones.allow_tags = True  # Permite renderizar HTML
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'project', 'description', 'completed', 'deadline', 'is_overdue')
+    list_display = ('id', 'get_name_display', 'project', 'description', 'completed', 'deadline', 'is_overdue')
     list_filter = ('completed', 'deadline', 'project')
-    search_fields = ('name', 'description', 'project__name')
+    search_fields = ('project__name', 'description')
     list_editable = ('completed',)
     raw_id_fields = ('project',)
+
+    def get_name_display(self, obj):
+        return obj.get_name_display()
+    get_name_display.short_description = 'Estado'
 
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('id', 'filename', 'project', 'uploaded_by', 'upload_date')
