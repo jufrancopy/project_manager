@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Resumen de Tareas</h1>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Tareas Pendientes</h5>
+                    <p class="card-text">{{ pending_tasks }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Tareas Completadas</h5>
+                    <p class="card-text">{{ completed_tasks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <canvas id="taskChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Script para el gráfico -->
+<script>
+    const ctx = document.getElementById('taskChart').getContext('2d');
+    const taskChart = new Chart(ctx, {
+        type: 'bar',  // Tipo de gráfico (puedes usar 'bar', 'pie', 'doughnut', etc.)
+        data: {
+            labels: ['Tareas Pendientes', 'Tareas Completadas'],
+            datasets: [{
+                label: 'Número de Tareas',
+                data: [{{ pending_tasks }}, {{ completed_tasks }}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',  // Color para tareas pendientes
+                    'rgba(75, 192, 192, 0.2)',  // Color para tareas completadas
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(75, 192, 192, 1)',
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Projects</h1>
+<a href="{% url 'add_project' %}" class="btn btn-primary mb-3">Add Project</a>
+<ul class="list-group">
+    {% for project in projects %}
+    <li class="list-group-item">
+        <a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

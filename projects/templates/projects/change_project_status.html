@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Cambiar Estado del Proyecto: {{ project.name }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <label for="status">Nuevo Estado:</label>
+    <select name="status" id="status">
+        {% for value, label in project.STATUS_CHOICES %}
+        <option value="{{ value }}" {% if project.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Actualizar Estado</button>
+</form>
+<a href="{% url 'project_detail' project.id %}">Volver al Proyecto</a>
+{% endblock %}
