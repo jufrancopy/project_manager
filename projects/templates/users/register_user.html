@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}  <!-- Extensión correcta para Jazzmin -->
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Registrar Usuario</h1>
+
+    <!-- Mensajes de retroalimentación -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formulario con Crispy Forms -->
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary mt-3">Registrar</button>
+    </form>
+</div>
+{% endblock %}

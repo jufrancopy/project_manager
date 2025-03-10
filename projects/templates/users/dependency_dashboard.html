@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Panel de la Dependencia</h1>
+  <h2>Proyectos de {{ request.user.dependency.name }}</h2>
+  <ul>
+    {% for project in projects %}
+      <li>{{ project.name }} - {{ project.get_status_display() }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

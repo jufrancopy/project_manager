@@ -1,12 +1,81 @@
-.button.plus-button {
-    background-color: #4CAF50; /* Verde */
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    text-align: center;
+/* Estilos para el wrapper principal */
+.wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Estilos para el sidebar */
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: #343a40;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+#sidebar.active {
+    margin-left: -250px; /* Oculta el sidebar */
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #2c3e50;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul li a {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: #fff;
     text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
+}
+
+#sidebar ul li a:hover {
+    background: #4a5568;
+}
+
+#sidebar ul li a i {
+    margin-right: 10px;
+}
+
+/* Estilos para el contenido principal */
+#content {
+    flex-grow: 1; /* Ocupa todo el espacio restante */
+    transition: all 0.3s;
+
+}
+
+#content.active {
+    margin-left: 0; /* Elimina el margen cuando el sidebar está colapsado */
+}
+
+/* Estilos para la barra de navegación superior */
+.navbar {
+    padding: 15px 10px;
+    background: #343a40;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+.navbar-btn {
+    box-shadow: none;
+    outline: none !important;
+    border: none;
+}
+
+/* Estilos para el pie de página */
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #343a40;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
 }

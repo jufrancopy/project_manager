@@ -1,4 +1,3 @@
-from django.db import models
 from django.utils.html import format_html
 from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import AbstractUser
@@ -6,6 +5,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
+from django.db import models
+from django.core.mail import send_mail
 
 class Dependency(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nombre de la Dependencia")
@@ -14,18 +15,26 @@ class Dependency(models.Model):
     position = models.CharField(max_length=200, verbose_name="Cargo del Responsable")
     additional_info = models.TextField(verbose_name="Información Adicional", blank=True, null=True)
 
+    class Meta:
+        verbose_name = "Dependencia"
+        verbose_name_plural = "Dependencias"
+
     def __str__(self):
         return self.name
 
 class User(AbstractUser):
     ROLES = [
         ('admin', 'Administrador'),
-        ('analyst', 'Analista de Proyecto'),
+        ('analyst_leader', 'Analista Líder'),
+        ('analyst_junior', 'Analista Junior'),
         ('applicant', 'Solicitante'),
     ]
 
     role = models.CharField(max_length=50, choices=ROLES, default='applicant', verbose_name="Rol")
     dependency = models.ForeignKey(Dependency, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Dependencia")
+
+    verbose_name = "Usuario"
+    verbose_name_plural = "Usuarios"
 
     def __str__(self):
         return self.username
@@ -86,7 +95,23 @@ class Project(models.Model):
         verbose_name="Documento del Proyecto"
     )
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Creado por")
-    # Si necesitas los campos start_date y end_date, agrégalos:
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_projects',
+        verbose_name="Asignado a"
+    )
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_by_projects',
+        verbose_name="Asignado por"
+    )
+
     start_date = models.DateField(verbose_name="Fecha de Inicio", null=True, blank=True)
     end_date = models.DateField(verbose_name="Fecha de Finalización", null=True, blank=True)
 
@@ -107,14 +132,12 @@ class Project(models.Model):
         )
     colored_status.short_description = 'Estado'
 
+    class Meta:
+        verbose_name = "Projecto"
+        verbose_name_plural = "Proyectos"
+
     def __str__(self):
         return self.name
-
-from django.db import models
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.utils import timezone
 
 class Task(models.Model):
     STATUS_CHOICES = [
@@ -125,12 +148,18 @@ class Task(models.Model):
         ('development', 'Desarrollo del Proyecto'),
         ('monitoring', 'Monitoreo y Evaluación'),
     ]
-
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="Proyecto")
     name = models.CharField(max_length=50, choices=STATUS_CHOICES, verbose_name="Tarea")
     description = models.TextField(verbose_name="Descripción")
     completed = models.BooleanField(default=False, verbose_name="Completado")
     deadline = models.DateField(verbose_name="Fecha Límite")
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Relación con el modelo de usuario
+        on_delete=models.SET_NULL,  # Si el usuario es eliminado, el campo se establece como NULL
+        null=True,  # Permite valores nulos en la base de datos
+        blank=True,  # Permite que el campo esté vacío en los formularios
+        verbose_name="Asignado a"
+    )
 
     def is_overdue(self):
         return self.deadline < timezone.now().date() if self.deadline else False
@@ -160,15 +189,21 @@ class Task(models.Model):
         email.send(fail_silently=False)
 
     def save(self, *args, **kwargs):
-        # Verificar si el estado ha cambiado
-        if self.pk:  # Solo si la tarea ya existe
+        is_new = not self.pk  # Verificar si es nueva tarea
+        if is_new:
+            self.notify_status_change()
+        else:
             old_task = Task.objects.get(pk=self.pk)
-            if old_task.name != self.name:  # Si el estado cambió
+            if old_task.name != self.name:
                 self.notify_status_change()
         super().save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = "Tarea"
+        verbose_name_plural = "Tareas"
+
     def __str__(self):
-        return self.get_name_display()  # Muestra el nombre legible del estado
+        return self.get_name_display()
 
 class Document(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="Proyecto",related_name="documents")
@@ -183,6 +218,10 @@ class Document(models.Model):
     def filename(self):
         return self.file.name.split('/')[-1]
     filename.short_description = 'Nombre del Archivo'
+
+    class Meta:
+        verbose_name = "Documento"
+        verbose_name_plural = "Documentos"
 
     def __str__(self):
         return self.file.name

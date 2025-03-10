@@ -1,12 +1,112 @@
-{% extends 'base.html' %}
+{% extends "admin/base_site.html" %}
+
+{% block content_title %}
+    <h1>Detalles del Proyecto: <strong>{{ project.name }}</strong></h1>
+{% endblock %}
 
 {% block content %}
-<h1>{{ project.name }}</h1>
-<p>Estado: {{ project.get_status_display }}</p>
-<h2>Tareas</h2>
-<ul>
-    {% for task in tasks %}
-    <li>{{ task.name }} - {{ task.get_status_display }}</li>
-    {% endfor %}
-</ul>
+    <div class="row">
+        <!-- Información del Proyecto -->
+        <div class="col-md-6">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Información del Proyecto</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Estado:</dt>
+                        <dd class="col-sm-8">{{ project.get_status_display }}</dd>
+
+                        <dt class="col-sm-4">Descripción:</dt>
+                        <dd class="col-sm-8">{{ project.description }}</dd>
+
+                        <dt class="col-sm-4">Líder:</dt>
+                        <dd class="col-sm-8">{{ project.leader }}</dd>
+
+                        <dt class="col-sm-4">Dependencia:</dt>
+                        <dd class="col-sm-8">{{ project.dependency.name }}</dd>
+
+                        <dt class="col-sm-4">Fecha de Solicitud:</dt>
+                        <dd class="col-sm-8">{{ project.request_date }}</dd>
+
+                        <dt class="col-sm-4">Tipo de Proyecto:</dt>
+                        <dd class="col-sm-8">{{ project.get_project_type_display }}</dd>
+
+                        <dt class="col-sm-4">Departamento:</dt>
+                        <dd class="col-sm-8">{{ project.get_department_display }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tareas del Proyecto -->
+        <div class="col-md-6">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Tareas del Proyecto</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Formulario para agregar tareas -->
+                    {% if request.user.role == 'analyst_leader' %}
+                    <div class="mb-4">
+                        <h4>Agregar Nueva Tarea</h4>
+                        <form method="post" action="{% url 'admin_project_detail' project.id %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                {{ form.name.label_tag }}
+                                {{ form.name }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.description.label_tag }}
+                                {{ form.description }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.deadline.label_tag }}
+                                {{ form.deadline }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.assigned_to.label_tag }}
+                                {{ form.assigned_to }}
+                            </div>
+                            <button type="submit" class="btn btn-primary">Agregar Tarea</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <!-- Tabla de tareas -->
+                    <table class="table table-bordered table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                                <th>Descripción</th>
+                                <th>Fecha Límite</th>
+                                <th>Asignado a</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>{{ task.name }}</td>
+                                <td>
+                                    <span class="badge badge-{{ task.get_status_display|lower }}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ task.description }}</td>
+                                <td>{{ task.deadline }}</td>
+                                <td>{{ task.assigned_to.username }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ form.media }}  <!-- Incluye los archivos de CKEditor 5 -->
 {% endblock %}
