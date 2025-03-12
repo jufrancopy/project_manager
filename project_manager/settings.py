@@ -54,12 +54,14 @@ JAZZMIN_SETTINGS = {
     "site_logo": "img/logo.png",  # Ruta a tu logo (debe estar en la carpeta static)
 
     # Colores del tema
-    "theme": "dark",  # Puedes usar "light" o "dark"
+    "theme": "light",  # Puedes usar "light" o "dark"
 
     # Menú personalizado
     "topmenu_links": [
         {"name": "Inicio", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Sitio Web", "url": "/", "new_window": True},
+        #{'name': 'Leader Dashboard', 'url': '/leader-dashboard/', 'permissions': ['auth.view_user']},
+
     ],
 
     # Iconos personalizados para los modelos
@@ -84,7 +86,8 @@ JAZZMIN_SETTINGS = {
     "copyright": "Project Manager 2025 - Julio Franco",
 }
 
-LOGIN_REDIRECT_URL = '/role-redirect/'
+LOGIN_REDIRECT_URL = '/projects/role-redirect/'  # Llamará a la vista que maneja las redirecciones
+
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"

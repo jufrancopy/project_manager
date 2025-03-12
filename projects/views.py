@@ -10,6 +10,8 @@ from .forms import ProjectForm, TaskForm, DocumentForm, UserRegisterForm
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+import logging
+
 
 
 # Lista todos los proyectos
@@ -250,12 +252,29 @@ def project_detail_admin(request, project_id):
         'form': form,
     })
 
+logger = logging.getLogger(__name__)  # Configurar el log
+
 @login_required
 def redirect_based_on_role(request):
-    # Verificar el rol del usuario (asume que 'role' es un atributo del modelo usuario o perfil)
-    if request.user.role == 'analyst_leader':  # Ajusta 'role' a tu lógica de usuario
-        return redirect('project_list')  # Renovación directa a la ruta específica
-    #elif request.user.role == 'manager':
-     #   return redirect('manager_dashboard')  # Ejemplo para otros roles
-    #else:
-     #   return redirect('default_dashboard')  # Ruta por defecto para otros usuarios
+    user = request.user
+    logger.debug(f"Redirigiendo usuario: {user.username} con rol: {user.role}")
+
+    if user.role == "applicant":
+        return redirect("dependency_dashboard")  # Asegúrate de que esta URL está definida
+    elif user.role == "analyst":
+        return redirect("dashboard")
+    elif user.role == "analys|t_leader":
+        return redirect("leader_dashboard")  # Asegúrate de que esta URL existe
+    elif user.is_superuser:
+        return redirect("admin:index")  # Redirige al panel de administración
+    else:
+        logger.warning(f"Usuario {user.username} con rol desconocido: {user.role}")
+        return redirect("home")  # Redirigir a una página por defecto
+
+@login_required
+def leader_dashboard(request):
+    if request.user.is_authenticated:
+        print("Usuario autenticado:", request.user)
+    else:
+        print("El usuario no está autenticado")
+    return render(request, 'projects/leader_dashboard.html', {})

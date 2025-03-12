@@ -8,9 +8,6 @@ urlpatterns = [
     path('<int:project_id>/', views.project_detail, name='project_detail'),
     path('add/', views.add_project, name='add_project'),
 
-    #Redirecciones segun Rol
-    path('role-redirect/', views.redirect_based_on_role, name='role_redirect'),
-
     #Rutas de Gestiòn de Proyectos de usuario con rol de Lider de Proyecto
     path('manager/list/', views.project_list, name='project_list'),  # Mover a una ruta diferente
     path('manager/<int:project_id>/add_task/', views.add_task, name='add_task'),
