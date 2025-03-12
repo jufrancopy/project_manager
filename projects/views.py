@@ -251,14 +251,11 @@ def project_detail_admin(request, project_id):
     })
 
 @login_required
-def analyst_leader_dashboard(request):
-    projects = Project.objects.filter(assigned_to=request.user)
-    analysts = User.objects.filter(role='analyst_junior')
-    pending_tasks = Task.objects.filter(assigned_to=request.user, completed=False)
-
-    context = {
-        'projects': projects,
-        'analysts': analysts,
-        'pending_tasks': pending_tasks,
-    }
-    return render(request, 'admin/analyst_leader_dashboard.html', context)
+def redirect_based_on_role(request):
+    # Verificar el rol del usuario (asume que 'role' es un atributo del modelo usuario o perfil)
+    if request.user.role == 'analyst_leader':  # Ajusta 'role' a tu lógica de usuario
+        return redirect('project_list')  # Renovación directa a la ruta específica
+    #elif request.user.role == 'manager':
+     #   return redirect('manager_dashboard')  # Ejemplo para otros roles
+    #else:
+     #   return redirect('default_dashboard')  # Ruta por defecto para otros usuarios

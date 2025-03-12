@@ -83,7 +83,8 @@ JAZZMIN_SETTINGS = {
     # Cambiar el texto del pie de página
     "copyright": "Project Manager 2025 - Julio Franco",
 }
-LOGIN_REDIRECT_URL = 'analyst_leader_dashboard'  # Redirige al dashboard del Analista Líder
+
+LOGIN_REDIRECT_URL = '/role-redirect/'
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
