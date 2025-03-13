@@ -14,6 +14,7 @@ urlpatterns = [
     path('manager/<int:project_id>/upload_document/', views.upload_document, name='upload_document'),
     path('manager/<int:project_id>/detail', views.project_detail_admin, name='admin_project_detail'),
 
+    #path('auth-redirect/', views.login_redirect_view, name='login_redirect'),
 
     path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]

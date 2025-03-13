@@ -10,21 +10,8 @@ from .forms import ProjectForm, TaskForm, DocumentForm, UserRegisterForm
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-import logging
-
-
-
-# Lista todos los proyectos
-def project_list(request):
-    print(f"Usuario: {request.user}, Rol: {request.user.role}")
-    if request.user.role == 'applicant':
-        projects = Project.objects.filter(dependency=request.user.dependency)
-    elif request.user.role == 'analyst_junior':
-        projects = Project.objects.filter(assigned_to=request.user)
-    else:
-        projects = Project.objects.all()
-    print(f"Proyectos encontrados: {projects.count()}")
-    return render(request, 'projects/project_list.html', {'projects': projects})
+from django.contrib.auth.views import LoginView
+from django.urls import reverse_lazy
 
 # Muestra los detalles de un proyecto, sus tareas y documentos
 def project_detail(request, project_id):
@@ -87,6 +74,7 @@ def add_task(request, project_id):
         raise PermissionDenied("Solo los analistas pueden agregar tareas.")
 
     project = get_object_or_404(Project, pk=project_id)
+
     if request.method == 'POST':
         form = TaskForm(request.POST)
         if form.is_valid():
@@ -94,22 +82,15 @@ def add_task(request, project_id):
                 task = form.save(commit=False)
                 task.project = project
                 task.save()
-
-                # Notificar a la dependencia sobre la nueva tarea
-                send_mail(
-                    f'Nueva Tarea para el Proyecto: {project.name}',
-                    f'Se ha agregado una nueva tarea al proyecto "{project.name}". Estado: {task.get_name_display()}.',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [project.dependency.email],  # Correo de la dependencia
-                    fail_silently=False,
-                )
-
                 messages.success(request, "Tarea agregada exitosamente.")
                 return redirect('project_detail', project_id=project.id)
             except Exception as e:
                 messages.error(request, f"Error al agregar la tarea: {str(e)}")
+        else:
+            messages.error(request, "Por favor, corrige los errores en el formulario.")
     else:
         form = TaskForm()
+
     return render(request, 'projects/add_task.html', {'form': form, 'project': project})
 
 # Sube un documento a un proyecto específico
@@ -220,7 +201,6 @@ def register_user(request):
         form = UserRegisterForm()
     return render(request, 'users/register_user.html', {'form': form})
 
-
 @login_required
 def dependency_dashboard(request):
     if request.user.role != 'applicant':
@@ -229,7 +209,6 @@ def dependency_dashboard(request):
     # Obtener los proyectos de la dependencia del usuario
     projects = Project.objects.filter(dependency=request.user.dependency)
     return render(request, 'dependency_dashboard.html', {'projects': projects})
-
 
 @staff_member_required
 def project_detail_admin(request, project_id):
@@ -252,29 +231,29 @@ def project_detail_admin(request, project_id):
         'form': form,
     })
 
-logger = logging.getLogger(__name__)  # Configurar el log
+class CustomLoginView(LoginView):
+    template_name = 'auth/login.html'  # Plantilla personalizada
+    redirect_authenticated_user = True  # Redirige a usuarios ya autenticados
+
+    def get_success_url(self):
+        user = self.request.user
+
+        if user.role == 'analyst_leader':
+            return reverse_lazy('project_list')  # Redirige al dashboard del analyst_leader
+        elif user.role == 'applicant':
+            return reverse_lazy('dependency_dashboard')  # Redirige al dashboard del solicitante
+        elif user.role == 'analyst_junior':
+            return reverse_lazy('project_list')  # Redirige a la lista de proyectos
+        else:
+            return reverse_lazy('dashboard')  # Redirección predeterminada
+
 
 @login_required
-def redirect_based_on_role(request):
-    user = request.user
-    logger.debug(f"Redirigiendo usuario: {user.username} con rol: {user.role}")
+def project_list(request):
+    # if request.user.role != 'analyst_leader':
+    #     raise PermissionDenied("No tienes permiso para acceder a esta vista.")
 
-    if user.role == "applicant":
-        return redirect("dependency_dashboard")  # Asegúrate de que esta URL está definida
-    elif user.role == "analyst":
-        return redirect("dashboard")
-    elif user.role == "analys|t_leader":
-        return redirect("leader_dashboard")  # Asegúrate de que esta URL existe
-    elif user.is_superuser:
-        return redirect("admin:index")  # Redirige al panel de administración
-    else:
-        logger.warning(f"Usuario {user.username} con rol desconocido: {user.role}")
-        return redirect("home")  # Redirigir a una página por defecto
+    # Obtener los proyectos asignados al analyst_leader
+    projects = Project.objects.all()
 
-@login_required
-def leader_dashboard(request):
-    if request.user.is_authenticated:
-        print("Usuario autenticado:", request.user)
-    else:
-        print("El usuario no está autenticado")
-    return render(request, 'projects/leader_dashboard.html', {})
+    return render(request, 'projects/project_list.html', {'projects': projects})

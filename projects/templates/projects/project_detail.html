@@ -1,39 +1,53 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 
 {% block content_title %}
-    <h1>Detalles del Proyecto: <strong>{{ project.name }}</strong></h1>
+    <h1 class="text-primary">Detalles del Proyecto: <strong>{{ project.name }}</strong></h1>
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid">
     <div class="row">
         <!-- Información del Proyecto -->
         <div class="col-md-6">
-            <div class="card card-primary">
-                <div class="card-header">
+            <div class="card card-primary shadow">
+                <div class="card-header bg-primary text-white">
                     <h3 class="card-title">Información del Proyecto</h3>
                 </div>
                 <div class="card-body">
-                    <dl class="row">
+                    <dl class="row mb-0">
                         <dt class="col-sm-4">Estado:</dt>
-                        <dd class="col-sm-8">{{ project.get_status_display }}</dd>
+                        <dd class="col-sm-8">
+                            <span class="badge
+                                {% if task.name == 'request' %}bg-warning
+                                {% elif task.name == 'analysis' %}bg-info
+                                {% elif task.name == 'presentation' %}bg-primary
+                                {% elif task.name == 'approval' %}bg-success
+                                {% elif task.name == 'development' %}bg-secondary
+                                {% elif task.name == 'monitoring' %}bg-dark
+                                {% else %}bg-light
+                                {% endif %}">
+                                {{ task.get_name_display|default:"Sin estado" }}
+                            </span>
+                        </dd>
 
                         <dt class="col-sm-4">Descripción:</dt>
-                        <dd class="col-sm-8">{{ project.description }}</dd>
+                        <dd class="col-sm-8">{{ project.description|default:"No disponible" }}</dd>
 
                         <dt class="col-sm-4">Líder:</dt>
-                        <dd class="col-sm-8">{{ project.leader }}</dd>
+                        <dd class="col-sm-8">{{ project.leader|default:"No asignado" }}</dd>
 
                         <dt class="col-sm-4">Dependencia:</dt>
-                        <dd class="col-sm-8">{{ project.dependency.name }}</dd>
+                        <dd class="col-sm-8">{{ project.dependency.name|default:"No disponible" }}</dd>
 
                         <dt class="col-sm-4">Fecha de Solicitud:</dt>
-                        <dd class="col-sm-8">{{ project.request_date }}</dd>
+                        <dd class="col-sm-8">{{ project.request_date|date:"d/m/Y" }}</dd>
 
                         <dt class="col-sm-4">Tipo de Proyecto:</dt>
-                        <dd class="col-sm-8">{{ project.get_project_type_display }}</dd>
+                        <dd class="col-sm-8">{{ project.get_project_type_display|default:"No disponible" }}</dd>
 
                         <dt class="col-sm-4">Departamento:</dt>
-                        <dd class="col-sm-8">{{ project.get_department_display }}</dd>
+                        <dd class="col-sm-8">{{ project.get_department_display|default:"No disponible" }}</dd>
                     </dl>
                 </div>
             </div>
@@ -41,32 +55,44 @@
 
         <!-- Tareas del Proyecto -->
         <div class="col-md-6">
-            <div class="card card-primary">
-                <div class="card-header">
+            <div class="card card-primary shadow">
+                <div class="card-header bg-primary text-white">
                     <h3 class="card-title">Tareas del Proyecto</h3>
                 </div>
                 <div class="card-body">
                     <!-- Formulario para agregar tareas -->
                     {% if request.user.role == 'analyst_leader' %}
                     <div class="mb-4">
-                        <h4>Agregar Nueva Tarea</h4>
-                        <form method="post" action="{% url 'admin_project_detail' project.id %}">
+                        <h4 class="text-primary">Agregar Nueva Tarea</h4>
+                        <form method="post" action="{% url 'admin_project_detail' project.id %}" class="needs-validation" novalidate>
                             {% csrf_token %}
-                            <div class="form-group">
-                                {{ form.name.label_tag }}
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
                                 {{ form.name }}
+                                <div class="invalid-feedback">
+                                    Este campo es obligatorio.
+                                </div>
                             </div>
-                            <div class="form-group">
-                                {{ form.description.label_tag }}
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
                                 {{ form.description }}
+                                <div class="invalid-feedback">
+                                    Este campo es obligatorio.
+                                </div>
                             </div>
-                            <div class="form-group">
-                                {{ form.deadline.label_tag }}
+                            <div class="mb-3">
+                                <label for="{{ form.deadline.id_for_label }}" class="form-label">{{ form.deadline.label }}</label>
                                 {{ form.deadline }}
+                                <div class="invalid-feedback">
+                                    Por favor, selecciona una fecha válida.
+                                </div>
                             </div>
-                            <div class="form-group">
-                                {{ form.assigned_to.label_tag }}
+                            <div class="mb-3">
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">{{ form.assigned_to.label }}</label>
                                 {{ form.assigned_to }}
+                                <div class="invalid-feedback">
+                                    Este campo es obligatorio.
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary">Agregar Tarea</button>
                         </form>
@@ -74,39 +100,69 @@
                     {% endif %}
 
                     <!-- Tabla de tareas -->
-                    <table class="table table-bordered table-hover">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Estado</th>
-                                <th>Descripción</th>
-                                <th>Fecha Límite</th>
-                                <th>Asignado a</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for task in tasks %}
-                            <tr>
-                                <td>{{ task.name }}</td>
-                                <td>
-                                    <span class="badge badge-{{ task.get_status_display|lower }}">
-                                        {{ task.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>{{ task.description }}</td>
-                                <td>{{ task.deadline }}</td>
-                                <td>{{ task.assigned_to.username }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Estado</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha Límite</th>
+                                    <th>Asignado a</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr>
+                                    <td>
+                                        <span class="badge
+                                            {% if task.name == 'request' %}bg-warning
+                                            {% elif task.name == 'analysis' %}bg-info
+                                            {% elif task.name == 'presentation' %}bg-primary
+                                            {% elif task.name == 'approval' %}bg-success
+                                            {% elif task.name == 'development' %}bg-secondary
+                                            {% elif task.name == 'monitoring' %}bg-dark
+                                            {% else %}bg-light
+                                            {% endif %}">
+                                            {{ task.get_name_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge
+                                            {% if task.completed %}bg-success
+                                            {% else %}bg-warning
+                                            {% endif %}">
+                                            {{ task.get_completed_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ task.description|default:"Sin descripción" }}</td>
+                                    <td>{{ task.deadline|date:"d/m/Y" }}</td>
+                                    <td>{{ task.assigned_to.username|default:"No asignado" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No hay tareas disponibles.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
     {{ form.media }}  <!-- Incluye los archivos de CKEditor 5 -->
+    <style>
+        .shadow {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .needs-validation :invalid + .invalid-feedback {
+            display: block;
+        }
+    </style>
 {% endblock %}

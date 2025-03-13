@@ -7,7 +7,7 @@ class RoleMiddleware:
 
     def __call__(self, request):
         if not request.user.is_authenticated:
-            return redirect(reverse('login'))
+            return redirect(reverse('auth'))
 
         if request.user.role == 'applicant' and not request.path.startswith('/applicant/'):
             return redirect(reverse('applicant_dashboard'))

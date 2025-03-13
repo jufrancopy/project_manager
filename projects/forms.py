@@ -24,6 +24,9 @@ class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
         fields = ['name', 'description', 'deadline', 'assigned_to']
+        widgets = {
+            'deadline': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
 
 class DocumentForm(forms.ModelForm):
     class Meta:

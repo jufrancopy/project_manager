@@ -33,6 +33,10 @@ class User(AbstractUser):
     role = models.CharField(max_length=50, choices=ROLES, default='applicant', verbose_name="Rol")
     dependency = models.ForeignKey(Dependency, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Dependencia")
 
+    @property
+    def is_analyst_leader(self):
+        return self.role == 'analyst_leader'
+
     verbose_name = "Usuario"
     verbose_name_plural = "Usuarios"
 
@@ -160,6 +164,10 @@ class Task(models.Model):
         blank=True,  # Permite que el campo esté vacío en los formularios
         verbose_name="Asignado a"
     )
+
+    def get_name_display(self):
+        """Devuelve el nombre legible del estado basado en STATUS_CHOICES."""
+        return dict(self.STATUS_CHOICES).get(self.name, "Sin estado")
 
     def is_overdue(self):
         return self.deadline < timezone.now().date() if self.deadline else False

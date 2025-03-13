@@ -86,8 +86,8 @@ JAZZMIN_SETTINGS = {
     "copyright": "Project Manager 2025 - Julio Franco",
 }
 
-LOGIN_REDIRECT_URL = '/projects/role-redirect/'  # Llamará a la vista que maneja las redirecciones
-
+LOGIN_URL = '/accounts/login/'  # URL del formulario de inicio de sesión
+LOGOUT_REDIRECT_URL = '/accounts/login/'  # Redirección después de cerrar sesión
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
