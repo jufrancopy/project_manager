@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flujograma Proyecto Parque Salud IPS</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    .diagram-container {
+      overflow: auto;
+      margin-bottom: 20px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .legend-color {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      border-radius: 4px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #4682B4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background-color: #3a6d96;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .note {
+      padding: 15px;
+      background-color: #e7f5fe;
+      border-left: 4px solid #4682B4;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Flujograma del Proyecto Parque Salud IPS</h1>
+
+    <div class="controls">
+      <button id="zoomIn">Acercar (+)</button>
+      <button id="zoomOut">Alejar (-)</button>
+      <button id="resetZoom">Vista Original</button>
+    </div>
+
+    <div class="diagram-container">
+      <pre class="mermaid">
+        %%{
+          init: {
+            'theme': 'base',
+            'themeVariables': {
+              'primaryColor': '#4682B4',
+              'primaryTextColor': '#fff',
+              'primaryBorderColor': '#3a6d96',
+              'lineColor': '#555',
+              'fontSize': '16px'
+            },
+            'flowchart': {
+              'curve': 'linear',
+              'diagramPadding': 10
+            }
+          }
+        }%%
+        flowchart TD
+            %% Definición de estilos
+            classDef dependencia fill:#c6dcff,stroke:#4d88ff,stroke-width:2px
+            classDef solicitud fill:#ffcccc,stroke:#ff8080,stroke-width:2px
+            classDef proceso fill:#d1f0c2,stroke:#9ed672,stroke-width:2px
+            classDef factibilidad fill:#ffe6b3,stroke:#ffcc66,stroke-width:2px
+            classDef aprobacion fill:#e6ccff,stroke:#cc99ff,stroke-width:2px
+            classDef desarrollo fill:#b3e6ff,stroke:#66ccff,stroke-width:2px
+            classDef monitoreo fill:#ffd9b3,stroke:#ffb366,stroke-width:2px
+
+            %% Dependencia y Solicitud
+            D1["Dependencia<br>interesada"] --> S1["Solicitud de<br>elaboración<br>del Proyecto"]
+            S1 --> DP["Departamento de Proyecto<br>Dirección de Planificación"]
+
+            %% Proceso interno
+            DP --> P1["1. Solicitud"]
+            P1 --> P2["2. Verificación y<br>Documentación<br>de Antecedentes"]
+            P2 --> F0["3. Análisis de Factibilidad"]
+
+            %% Subprocesos de Factibilidad
+            F0 --> F1["a. Análisis de Necesidad"]
+            F1 --> F2["b. Definición de<br>objetivos y metas"]
+            F2 --> F3["c. Alineación con<br>Plan Estratégico"]
+            F3 --> F4["d. Estudio de<br>requerimientos"]
+            F4 --> F5["e. Evaluación de<br>recursos/financiación"]
+            F5 --> F6["f. Factibilidad legal,<br>financiera y operativa"]
+            F6 --> F7["g. Evaluación<br>de Riesgos"]
+            F7 --> F8["h. Identificación de<br>Roles y Responsabilidades"]
+
+            %% Presentación y Aprobación
+            F8 --> P3["4. Presentación<br>para Aprobación"]
+            P3 --> A1["5. Aprobación<br>de Autoridades"]
+            A1 -->|"Según caso"| A2["Consejo de<br>Administración IPS"]
+            A1 -->|"Según caso"| G0["Gerencias"]
+
+            %% Gerencias
+            G0 --> G1["Prestaciones<br>Económicas"]
+            G0 --> G2["Tecnología<br>y Desarrollo"]
+            G0 --> G3["Salud"]
+            G0 --> G4["Abastecimiento<br>y Logística"]
+            G0 --> G5["Financiera y<br>Administrativa"]
+
+            %% Desarrollo del Proyecto
+            A2 -->|"Aprobado"| D0["6. Desarrollo<br>del Proyecto"]
+            G0 -->|"Aprobado"| D0
+            D0 --> D1A["Plan detallado"]
+            D1A --> D2["Indicadores<br>de desempeño"]
+            D2 --> D3["Reuniones<br>interinstitucionales"]
+            D3 --> D4["Gestión de<br>documentación"]
+
+            %% Monitoreo y Evaluación
+            D4 --> M0["7. Monitoreo<br>y Evaluación"]
+            M0 --> M1["Medición de impacto<br>y desempeño"]
+            M1 --> M2["Informe final"]
+            M2 --> M3["Lecciones<br>aprendidas"]
+            M3 --> M4["Recomendaciones<br>para proyectos futuros"]
+
+            %% Aplicar estilos a los nodos
+            class D1 dependencia
+            class S1 solicitud
+            class DP,P1,P2,P3 proceso
+            class F0,F1,F2,F3,F4,F5,F6,F7,F8 factibilidad
+            class A1,A2,G0,G1,G2,G3,G4,G5 aprobacion
+            class D0,D1A,D2,D3,D4 desarrollo
+            class M0,M1,M2,M3,M4 monitoreo
+      </pre>
+    </div>
+
+    <div class="note">
+      <strong>Nota:</strong> Este diagrama utiliza Mermaid.js, una herramienta moderna para crear diagramas a partir de texto. Puede hacer zoom con la rueda del mouse o con los botones de control.
+    </div>
+
+    <div class="legend">
+      <h3 style="width: 100%; text-align: center; margin-bottom: 10px;">Leyenda:</h3>
+      <div class="legend-item"><div class="legend-color" style="background-color: #c6dcff; border: 1px solid #4d88ff;"></div> Dependencia</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #ffcccc; border: 1px solid #ff8080;"></div> Solicitud inicial</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #d1f0c2; border: 1px solid #9ed672;"></div> Proceso del Departamento de Proyecto</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #ffe6b3; border: 1px solid #ffcc66;"></div> Análisis de Factibilidad</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #e6ccff; border: 1px solid #cc99ff;"></div> Aprobación</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #b3e6ff; border: 1px solid #66ccff;"></div> Desarrollo del Proyecto</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #ffd9b3; border: 1px solid #ffb366;"></div> Monitoreo y Evaluación</div>
+    </div>
+  </div>
+
+  <script>
+    // Inicializar Mermaid
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: 'loose',
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: 'linear'
+      }
+    });
+
+    // Esperar a que Mermaid termine de cargar
+    document.addEventListener('DOMContentLoaded', function() {
+      // Dar un poco de tiempo para que el diagrama se renderice
+      setTimeout(function() {
+        // Funciones de zoom
+        const svg = document.querySelector('.mermaid svg');
+        if (!svg) return;
+
+        let currentZoom = 1;
+
+        document.getElementById('zoomIn').addEventListener('click', function() {
+          currentZoom += 0.1;
+          applyZoom();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', function() {
+          if (currentZoom > 0.5) {
+            currentZoom -= 0.1;
+            applyZoom();
+          }
+        });
+
+        document.getElementById('resetZoom').addEventListener('click', function() {
+          currentZoom = 1;
+          applyZoom();
+        });
+
+        function applyZoom() {
+          const container = document.querySelector('.diagram-container');
+          const svgElement = container.querySelector('svg');
+          if (svgElement) {
+            svgElement.style.transform = `scale(${currentZoom})`;
+            svgElement.style.transformOrigin = 'center top';
+          }
+        }
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

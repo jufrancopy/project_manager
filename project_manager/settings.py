@@ -60,7 +60,7 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
         {"name": "Inicio", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Sitio Web", "url": "/", "new_window": True},
-        #{'name': 'Leader Dashboard', 'url': '/leader-dashboard/', 'permissions': ['auth.view_user']},
+        {"name": "Flujograma", "url": "flujograma", "permissions": ["auth.view_user"]},
 
     ],
 

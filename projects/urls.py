@@ -13,6 +13,7 @@ urlpatterns = [
     path('manager/<int:project_id>/add_task/', views.add_task, name='add_task'),
     path('manager/<int:project_id>/upload_document/', views.upload_document, name='upload_document'),
     path('manager/<int:project_id>/detail', views.project_detail_admin, name='admin_project_detail'),
+    path('manager/flujograma/', views.show_flujograma, name='flujograma'),
 
     #path('auth-redirect/', views.login_redirect_view, name='login_redirect'),
 

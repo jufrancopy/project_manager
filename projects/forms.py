@@ -2,6 +2,7 @@ from django import forms
 from .models import Project, Task, Document, User, Dependency
 from django.contrib.auth.forms import UserCreationForm
 from django_ckeditor_5.widgets import CKEditor5Widget
+from .models import Task, User
 
 
 class ProjectForm(forms.ModelForm):
@@ -11,8 +12,6 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ['name', 'leader', 'description', 'request_date', 'project_type', 'department', 'dependency']
 
-from django import forms
-from .models import Task, User
 
 class TaskForm(forms.ModelForm):
     description = forms.CharField(
