@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.db import models
-from django.core.mail import send_mail
 
 class Dependency(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nombre de la Dependencia")
@@ -91,7 +90,7 @@ class Project(models.Model):
     request_date = models.DateField(verbose_name="Fecha de Solicitud")
     project_type = models.CharField(max_length=50, choices=PROJECT_TYPES, verbose_name="Tipo de Proyecto")
     department = models.CharField(max_length=50, choices=DEPARTMENTS, verbose_name="Departamento")
-    dependency = models.ForeignKey(Dependency, on_delete=models.CASCADE, verbose_name="Dependencia Solicitante")
+    dependency = models.ForeignKey(Dependency, on_delete=models.CASCADE, verbose_name="Dependencia Solicitante", null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='request', verbose_name="Estado del Proyecto")
     document = models.FileField(
         upload_to='project_documents/',
