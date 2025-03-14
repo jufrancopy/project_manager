@@ -5,11 +5,15 @@ from django.urls import reverse
 from .models import Project, Task, Document, Dependency, User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
+from django.contrib import admin
+from .models import Project
+from .forms import ProjectForm
 
 
 class ProjectAdmin(admin.ModelAdmin):
+    form = ProjectForm  # Usa el formulario personalizado
     list_display = (
-        'id', 'name', 'leader', 'request_date', 'project_type', 'department', 'dependency',
+        'name', 'leader', 'request_date', 'project_type', 'department', 'dependency',
         'colored_status', 'created_by', 'assigned_to', 'assigned_by', 'acciones'
     )
     list_filter = (
@@ -35,16 +39,18 @@ class ProjectAdmin(admin.ModelAdmin):
             color,
             obj.get_status_display()
         )
+
     colored_status.short_description = 'Estado'
 
     def acciones(self, obj):
         add_task_url = reverse('admin:projects_task_add') + f'?project={obj.id}'
         return format_html(
             '<a href="{}" class="button" title="Agregar Tarea">'
-            '<i class="fas fa-plus"></i>'
+            '<i class="fas fa-tasks"></i>'
             '</a>',
             add_task_url
         )
+
     acciones.short_description = 'Acciones'
     acciones.allow_tags = True
 
@@ -69,6 +75,7 @@ class ProjectAdmin(admin.ModelAdmin):
             obj.assigned_by = request.user
         super().save_model(request, obj, form, change)
 
+
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_name_display', 'project', 'description', 'completed', 'deadline', 'is_overdue')
     list_filter = ('completed', 'deadline', 'project')
@@ -78,22 +85,33 @@ class TaskAdmin(admin.ModelAdmin):
 
     def get_name_display(self, obj):
         return obj.get_name_display()
+
     get_name_display.short_description = 'Estado'
 
+
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'filename', 'project', 'uploaded_by', 'upload_date')
+    list_display = ('filename', 'project', 'uploaded_by', 'upload_date', 'view_word_link')
     list_filter = ('upload_date', 'project', 'uploaded_by')
     search_fields = ('file', 'project__name', 'uploaded_by__username')
     date_hierarchy = 'upload_date'
     readonly_fields = ('upload_date',)
 
-    def filename(self, obj):
-        return obj.file.name.split('/')[-1]
-    filename.short_description = 'Nombre del Archivo'
+    def view_word_link(self, obj):
+        if obj.file:
+            try:
+                url = reverse('view_word', kwargs={'document_id': obj.id})  # Asegúrate de usar el nombre correcto
+                return format_html('<a href="{}">Ver documento</a>', url)
+            except Exception as e:
+                return f"Error en URL: {e}"
+        return "No hay documento"
+
+    view_word_link.short_description = 'Ver Documento'
+
 
 class DependencyAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'responsible', 'position')
     search_fields = ('name', 'email', 'responsible')
+
 
 class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'role', 'dependency')
@@ -120,6 +138,7 @@ class UserAdmin(BaseUserAdmin):
 
     def make_analyst(self, request, queryset):
         queryset.update(role='analyst')
+
     make_analyst.short_description = "Cambiar rol a Analista"
 
     def save_model(self, request, obj, form, change):
@@ -128,7 +147,7 @@ class UserAdmin(BaseUserAdmin):
             obj.set_password(form.cleaned_data['password'])  # Genera el hash de la contraseña
         super().save_model(request, obj, form, change)
 
-# Registro de modelos
+
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Document, DocumentAdmin)

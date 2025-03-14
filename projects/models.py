@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.db import models
+import os
+
 
 class Dependency(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nombre de la Dependencia")
@@ -95,7 +97,9 @@ class Project(models.Model):
     document = models.FileField(
         upload_to='project_documents/',
         validators=[FileExtensionValidator(allowed_extensions=['doc', 'docx'])],
-        verbose_name="Documento del Proyecto"
+        verbose_name="Documento del Proyecto",
+        null=True,
+        blank=True
     )
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Creado por")
     assigned_to = models.ForeignKey(
@@ -135,6 +139,33 @@ class Project(models.Model):
         )
     colored_status.short_description = 'Estado'
 
+    def save(self, *args, **kwargs):
+        # Guarda el proyecto primero
+        super().save(*args, **kwargs)
+
+        # Si se subió un archivo, crea un registro en Document
+        if self.document:
+            Document.objects.create(
+                project=self,  # Relaciona el documento con este proyecto
+                file=self.document,  # Asigna el archivo subido
+                uploaded_by=self.created_by  # Asigna el usuario que creó el proyecto
+            )
+            super().save(*args, **kwargs)  # Guarda el proyecto nuevamente
+
+    def delete(self, *args, **kwargs):
+        # Elimina el archivo asociado al campo `document` en Project
+        if self.document:
+            if os.path.isfile(self.document.path):
+                os.remove(self.document.path)
+
+        # Elimina los archivos asociados en el modelo Document
+        for document in self.documents.all():
+            if os.path.isfile(document.file.path):
+                os.remove(document.file.path)
+            document.delete()  # Elimina el registro de Document
+
+        # Llama al método delete() de la clase padre para eliminar el proyecto
+        super().delete(*args, **kwargs)
     class Meta:
         verbose_name = "Projecto"
         verbose_name_plural = "Proyectos"

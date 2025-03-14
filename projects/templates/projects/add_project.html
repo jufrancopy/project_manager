@@ -1,13 +1,52 @@
-{% extends "admin/base.html" %}  <!-- Extensión correcta para Jazzmin -->
-{% load crispy_forms_tags %}  <!-- Cargar crispy_forms_tags -->
+{% extends "admin/base_site.html" %}  <!-- Extiende la plantilla base de Jazzmin -->
+{% load crispy_forms_tags %}  <!-- Cargar crispy_forms_tags si lo usas -->
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Agregar Proyecto</h1>
-    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-        {% csrf_token %}
-        {{ form|crispy }}  <!-- Usar el filtro crispy -->
-        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
-    </form>
+<div class="container-fluid">
+    <div class="content" style="margin: 0; padding: 0;">  <!-- Elimina el margen y el padding -->
+        <div class="container-fluid" style="padding: 20px;">  <!-- Añade un padding interno -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title">Agregar Proyecto</h3>
+                        </div>
+                        <div class="card-body">
+                            {% crispy form %}  <!-- crispy_forms ya incluye la etiqueta <form> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extrabody %}
+{{ block.super }}
+{{ form.media }}
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Asegura que jQuery está cargado -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+    .shadow {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .needs-validation :invalid + .invalid-feedback {
+        display: block;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa Select2 para todos los campos con la clase select2
+        $('.select2').select2({
+            placeholder: "Selecciona una opción",  // Texto de placeholder
+            allowClear: true,  // Permite borrar la selección
+        });
+    });  <!-- Cierra la función document.addEventListener -->
+</script>
 {% endblock %}

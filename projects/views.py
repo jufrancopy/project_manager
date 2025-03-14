@@ -5,13 +5,20 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import UpdateView
-from .models import Project, Task, Document, User
-from .forms import ProjectForm, TaskForm, DocumentForm, UserRegisterForm
+from projects.models import Project, Task, Document, User
+from projects.forms import ProjectForm, TaskForm, DocumentForm, UserRegisterForm
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
+import re
+import unicodedata
+from bs4 import BeautifulSoup
+import mammoth
+from projects.models import Document
+from django.views.generic.edit import CreateView
+
 
 # Muestra los detalles de un proyecto, sus tareas y documentos
 def project_detail(request, project_id):
@@ -24,10 +31,11 @@ def project_detail(request, project_id):
         'documents': documents,
     })
 
+
 # Agrega un nuevo proyecto
 def add_project(request):
-    if request.user.role != 'applicant':
-        raise PermissionDenied("Solo los solicitantes pueden agregar proyectos.")
+    if request.user.role == 'analyst_junior':  # Restringir solo a analyst_junior
+        raise PermissionDenied("Los Analistas Junior no pueden agregar proyectos.")
 
     if request.method == "POST":
         form = ProjectForm(request.POST, request.FILES)
@@ -238,15 +246,16 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         user = self.request.user
 
-        if user.role == 'analyst_leader':
+        if user.is_superuser:
+            return reverse_lazy('admin:index')  # Redirige al panel de administración de Django
+        elif user.role == 'analyst_leader':
             return reverse_lazy('project_list')  # Redirige al dashboard del analyst_leader
         elif user.role == 'applicant':
             return reverse_lazy('dependency_dashboard')  # Redirige al dashboard del solicitante
         elif user.role == 'analyst_junior':
             return reverse_lazy('project_list')  # Redirige a la lista de proyectos
         else:
-            return reverse_lazy('dashboard')  # Redirección predeterminada
-
+            return reverse_lazy('home')  # Redirección predeterminada
 
 @login_required
 def project_list(request):
@@ -258,6 +267,72 @@ def project_list(request):
 
     return render(request, 'projects/project_list.html', {'projects': projects})
 
-
 def show_flujograma(request):
     return render(request, 'projects/flujograma.html')
+
+def view_word(request, document_id):
+    # Obtén el documento de la base de datos
+    document = get_object_or_404(Document, id=document_id)
+    print(f"Documento encontrado: {document.filename}")  # Depuración
+
+    # Lee el archivo Word y conviértelo a HTML
+    with document.file.open('rb') as docx_file:
+        result = mammoth.convert_to_html(docx_file)
+        content = result.value  # HTML generado
+        print(f"HTML generado: {content}")  # Depuración
+
+    # Agregar IDs a los títulos y subtítulos
+    content, headings = add_ids_to_headings(content)
+    print(f"Títulos extraídos: {headings}")  # Depuración
+
+    # Pasa el contenido y los títulos a la plantilla
+    return render(request, 'projects/view_word.html', {'content': content, 'headings': headings, 'document': document})
+
+
+def normalize_id(text):
+    """
+    Normaliza el texto para crear un ID válido y legible.
+    - Elimina tildes y caracteres especiales.
+    - Convierte a minúsculas.
+    - Reemplaza espacios y caracteres no alfanuméricos con guiones.
+    """
+    # Normaliza el texto (elimina tildes)
+    normalized_text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    # Convierte a minúsculas y reemplaza caracteres no alfanuméricos con guiones
+    id_text = re.sub(r'[^a-zA-Z0-9]+', '-', normalized_text.lower())
+    # Elimina guiones al inicio o final
+    return id_text.strip('-')
+
+def add_ids_to_headings(html_content):
+    """
+    Agrega IDs a los títulos (elementos <strong>, <h1> a <h6>) y devuelve una lista de títulos.
+    Maneja duplicados, normaliza IDs y refleja la jerarquía de los títulos.
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    headings = []
+    used_ids = set()  # Para evitar IDs duplicados
+
+    # Buscar elementos <strong> y <h1> a <h6>
+    for tag in soup.find_all(['strong', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+        # Genera un ID basado en el texto del título
+        base_id = normalize_id(tag.text.strip())
+        heading_id = base_id
+
+        # Si el ID ya existe, agrega un sufijo numérico
+        counter = 1
+        while heading_id in used_ids:
+            heading_id = f"{base_id}-{counter}"
+            counter += 1
+
+        used_ids.add(heading_id)  # Registrar el ID como usado
+        tag['id'] = heading_id  # Agrega el ID al título
+
+        # Guarda el título en la lista
+        headings.append({
+            'text': tag.text.strip(),
+            'id': heading_id,
+            'level': tag.name  # Nivel del título (etiqueta HTML)
+        })
+        print(f"Added ID '{heading_id}' to heading: {tag.text.strip()}")  # Depuración
+
+    return str(soup), headings
