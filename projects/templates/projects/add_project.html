@@ -1,6 +1,61 @@
 {% extends "admin/base_site.html" %}  <!-- Extiende la plantilla base de Jazzmin -->
 {% load crispy_forms_tags %}  <!-- Cargar crispy_forms_tags si lo usas -->
 
+{% block extrastyle %}
+{{ block.super }}  <!-- Asegúrate de cargar los estilos de Jazzmin -->
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<style>
+    /* Ocultar el input file por defecto */
+    input[type="file"] {
+        opacity: 0;
+        position: absolute;
+        z-index: -1;
+    }
+
+    /* Contenedor estilizado */
+    .custom-file-upload {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 2px solid #4CAF50; /* Verde suave */
+        background-color: #e8f5e9; /* Verde muy claro */
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Botón personalizado */
+    .upload-btn {
+        background-color: #4CAF50; /* Verde principal */
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        flex-shrink: 0;
+    }
+
+    .upload-btn:hover {
+        background-color: #388E3C; /* Verde más oscuro al pasar el mouse */
+    }
+
+    /* Nombre del archivo */
+    #file-name {
+        font-size: 14px;
+        color: #2E7D32; /* Verde más oscuro */
+        flex-grow: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="content" style="margin: 0; padding: 0;">  <!-- Elimina el margen y el padding -->
@@ -22,31 +77,50 @@
 </div>
 {% endblock %}
 
-{% block extrabody %}
-{{ block.super }}
-{{ form.media }}
-
-<!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Asegura que jQuery está cargado -->
+{% block extrajs %}
+{{ block.super }}  <!-- Asegúrate de cargar los scripts de Jazzmin -->
+<!-- jQuery (requerido por Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<style>
-    .shadow {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .needs-validation :invalid + .invalid-feedback {
-        display: block;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializa Select2 para todos los campos con la clase select2
-        $('.select2').select2({
+        $('select.select2').select2({
             placeholder: "Selecciona una opción",  // Texto de placeholder
             allowClear: true,  // Permite borrar la selección
         });
-    });  <!-- Cierra la función document.addEventListener -->
+
+        let fileInput = document.querySelector("#id_document");
+
+    // Crear un contenedor visual para reemplazar el input
+    let fileContainer = document.createElement("div");
+    fileContainer.classList.add("custom-file-upload");
+
+    // Crear el botón de selección
+    let uploadButton = document.createElement("button");
+    uploadButton.type = "button";
+    uploadButton.classList.add("upload-btn");
+    uploadButton.textContent = "Seleccionar archivo";
+
+    // Crear el span para mostrar el nombre del archivo
+    let fileNameDisplay = document.createElement("span");
+    fileNameDisplay.id = "file-name";
+    fileNameDisplay.textContent = "Ningún archivo seleccionado";
+
+    // Agregar eventos
+    uploadButton.addEventListener("click", function () {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener("change", function () {
+        fileNameDisplay.textContent = fileInput.files.length > 0 ? fileInput.files[0].name : "Ningún archivo seleccionado";
+    });
+
+    // Insertar el nuevo diseño antes del input original
+    fileInput.parentNode.insertBefore(fileContainer, fileInput);
+    fileContainer.appendChild(uploadButton);
+    fileContainer.appendChild(fileNameDisplay);
+    });
 </script>
 {% endblock %}

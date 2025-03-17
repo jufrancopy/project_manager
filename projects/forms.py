@@ -44,7 +44,7 @@ class ProjectForm(forms.ModelForm):
             if field_name in select_fields:
                 layout_fields.append(Field(field_name, css_class='form-control select2'))
             else:
-                layout_fields.append(Field(field_name, css_class='form-control'))
+                layout_fields.append(Field(field_name))
 
         # Agrega el botón de envío
         layout_fields.append(Submit('submit', 'Guardar', css_class='btn btn-primary'))
