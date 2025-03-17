@@ -259,8 +259,8 @@ class CustomLoginView(LoginView):
 
 @login_required
 def project_list(request):
-    # if request.user.role != 'analyst_leader':
-    #     raise PermissionDenied("No tienes permiso para acceder a esta vista.")
+    if request.user.role != 'analyst_leader':
+         raise PermissionDenied("No tienes permiso para acceder a esta vista.")
 
     # Obtener los proyectos asignados al analyst_leader
     projects = Project.objects.all()
@@ -290,12 +290,6 @@ def view_word(request, document_id):
 
 
 def normalize_id(text):
-    """
-    Normaliza el texto para crear un ID válido y legible.
-    - Elimina tildes y caracteres especiales.
-    - Convierte a minúsculas.
-    - Reemplaza espacios y caracteres no alfanuméricos con guiones.
-    """
     # Normaliza el texto (elimina tildes)
     normalized_text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
     # Convierte a minúsculas y reemplaza caracteres no alfanuméricos con guiones
@@ -304,10 +298,6 @@ def normalize_id(text):
     return id_text.strip('-')
 
 def add_ids_to_headings(html_content):
-    """
-    Agrega IDs a los títulos (elementos <strong>, <h1> a <h6>) y devuelve una lista de títulos.
-    Maneja duplicados, normaliza IDs y refleja la jerarquía de los títulos.
-    """
     soup = BeautifulSoup(html_content, 'html.parser')
     headings = []
     used_ids = set()  # Para evitar IDs duplicados
