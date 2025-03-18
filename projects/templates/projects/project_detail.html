@@ -1,5 +1,19 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
+{% load crispy_forms_tags %}  <!-- Cargar crispy_forms_tags si lo usas -->
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <style>
+        .shadow {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .needs-validation :invalid + .invalid-feedback {
+            display: block;
+        }
+    </style>
+{% endblock %}
 
 {% block content_title %}
     <h1 class="text-primary">Detalles del Proyecto: <strong>{{ project.name }}</strong></h1>
@@ -8,7 +22,6 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        <!-- Información del Proyecto -->
         <div class="col-md-6">
             <div class="card card-primary shadow">
                 <div class="card-header bg-primary text-white">
@@ -19,33 +32,28 @@
                         <dt class="col-sm-4">Estado:</dt>
                         <dd class="col-sm-8">
                             <span class="badge
-                                {% if task.name == 'request' %}bg-warning
-                                {% elif task.name == 'analysis' %}bg-info
-                                {% elif task.name == 'presentation' %}bg-primary
-                                {% elif task.name == 'approval' %}bg-success
-                                {% elif task.name == 'development' %}bg-secondary
-                                {% elif task.name == 'monitoring' %}bg-dark
+                                {% if project.status == 'request' %}bg-warning
+                                {% elif project.status == 'analysis' %}bg-info
+                                {% elif project.status == 'presentation' %}bg-primary
+                                {% elif project.status == 'approval' %}bg-success
+                                {% elif project.status == 'development' %}bg-secondary
+                                {% elif project.status == 'monitoring' %}bg-dark
                                 {% else %}bg-light
                                 {% endif %}">
-                                {{ task.get_name_display|default:"Sin estado" }}
+                                {{ project.get_status_display|default:"Sin estado" }}
                             </span>
                         </dd>
-
                         <dt class="col-sm-4">Descripción:</dt>
-                        <dd class="col-sm-8">{{ project.description|default:"No disponible" }}</dd>
 
+                        <dd class="col-sm-8">{{ formatted_description|default:"No disponible" }}</dd>
                         <dt class="col-sm-4">Líder:</dt>
                         <dd class="col-sm-8">{{ project.leader|default:"No asignado" }}</dd>
-
                         <dt class="col-sm-4">Dependencia:</dt>
                         <dd class="col-sm-8">{{ project.dependency.name|default:"No disponible" }}</dd>
-
                         <dt class="col-sm-4">Fecha de Solicitud:</dt>
                         <dd class="col-sm-8">{{ project.request_date|date:"d/m/Y" }}</dd>
-
                         <dt class="col-sm-4">Tipo de Proyecto:</dt>
                         <dd class="col-sm-8">{{ project.get_project_type_display|default:"No disponible" }}</dd>
-
                         <dt class="col-sm-4">Departamento:</dt>
                         <dd class="col-sm-8">{{ project.get_department_display|default:"No disponible" }}</dd>
                     </dl>
@@ -53,53 +61,19 @@
             </div>
         </div>
 
-        <!-- Tareas del Proyecto -->
         <div class="col-md-6">
             <div class="card card-primary shadow">
                 <div class="card-header bg-primary text-white">
                     <h3 class="card-title">Tareas del Proyecto</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Formulario para agregar tareas -->
                     {% if request.user.role == 'analyst_leader' %}
                     <div class="mb-4">
                         <h4 class="text-primary">Agregar Nueva Tarea</h4>
-                        <form method="post" action="{% url 'admin_project_detail' project.id %}" class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
-                                {{ form.name }}
-                                <div class="invalid-feedback">
-                                    Este campo es obligatorio.
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
-                                {{ form.description }}
-                                <div class="invalid-feedback">
-                                    Este campo es obligatorio.
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ form.deadline.id_for_label }}" class="form-label">{{ form.deadline.label }}</label>
-                                {{ form.deadline }}
-                                <div class="invalid-feedback">
-                                    Por favor, selecciona una fecha válida.
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">{{ form.assigned_to.label }}</label>
-                                {{ form.assigned_to }}
-                                <div class="invalid-feedback">
-                                    Este campo es obligatorio.
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Agregar Tarea</button>
-                        </form>
+                         {% crispy form %}
                     </div>
                     {% endif %}
 
-                    <!-- Tabla de tareas -->
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover">
                             <thead class="table-primary">
@@ -154,14 +128,19 @@
 </div>
 {% endblock %}
 
-{% block extrahead %}
-    {{ block.super }}
-    <style>
-        .shadow {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .needs-validation :invalid + .invalid-feedback {
-            display: block;
-        }
-    </style>
+{% block extrajs %}
+{{ block.super }}  <!-- Asegúrate de cargar los scripts de Jazzmin -->
+<!-- jQuery (requerido por Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa Select2 para todos los campos con la clase select2
+        $('select.select2').select2({
+            placeholder: "Selecciona una opción",  // Texto de placeholder
+            allowClear: true,  // Permite borrar la selección
+        });
+    });
+</script>
 {% endblock %}

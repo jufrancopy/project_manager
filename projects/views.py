@@ -17,8 +17,7 @@ import unicodedata
 from bs4 import BeautifulSoup
 import mammoth
 from projects.models import Document
-from django.views.generic.edit import CreateView
-
+from django.utils.html import strip_tags
 
 # Muestra los detalles de un proyecto, sus tareas y documentos
 def project_detail(request, project_id):
@@ -30,7 +29,6 @@ def project_detail(request, project_id):
         'tasks': tasks,
         'documents': documents,
     })
-
 
 # Agrega un nuevo proyecto
 def add_project(request):
@@ -196,7 +194,7 @@ class ChangeProjectStatusView(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
         return response
 
 @user_passes_test(lambda u: u.is_superuser)  # Solo el superusuario puede acceder
-@user_passes_test(lambda u: u.is_superuser or u.role == 'analyst')  # Superusuarios y analistas
+@user_passes_test(lambda u: u.is_superuser or u.role == 'analyst_leader')  # Superusuarios y analistas
 def register_user(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -221,10 +219,15 @@ def dependency_dashboard(request):
 @staff_member_required
 def project_detail_admin(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+
+    # Formatea la descripción eliminando las etiquetas HTML
+    formatted_description = strip_tags(project.description)
+
     tasks = Task.objects.filter(project=project)
 
     if request.method == 'POST':
         form = TaskForm(request.POST)
+
         if form.is_valid():
             task = form.save(commit=False)
             task.project = project
@@ -235,6 +238,7 @@ def project_detail_admin(request, project_id):
 
     return render(request, 'projects/project_detail.html', {
         'project': project,
+        'formatted_description': formatted_description,  # Pasa la descripción formateada
         'tasks': tasks,
         'form': form,
     })

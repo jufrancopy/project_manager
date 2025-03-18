@@ -6,10 +6,10 @@ from projects.views import dashboard
 from projects.views import CustomLoginView
 
 urlpatterns = [
-    path('', dashboard, name='dashboard'),  # Ahora accesible desde la raíz
+    path('', dashboard, name='dashboard'),
     path('admin/', admin.site.urls),
     path('accounts/login/', CustomLoginView.as_view(), name='login'),
-    path('projects/', include('projects.urls')),  # Incluye las URLs de la aplicación "projects"
+    path('projects/', include('projects.urls')),
 ]
 
 # Configuración para servir archivos multimedia durante el desarrollo

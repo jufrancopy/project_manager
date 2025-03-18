@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.db import models
 import os
+from django.utils.html import strip_tags
 
 
 class Dependency(models.Model):
@@ -209,7 +210,7 @@ class Task(models.Model):
         context = {
             'project_name': self.project.name,
             'new_status': self.get_name_display(),
-            'description': self.description,
+            'description': strip_tags(self.description),  # Elimina las etiquetas HTML
             'deadline': self.deadline,
             'completed': self.completed,
         }
