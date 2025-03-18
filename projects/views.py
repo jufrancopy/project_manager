@@ -219,15 +219,18 @@ def dependency_dashboard(request):
 @staff_member_required
 def project_detail_admin(request, project_id):
     project = get_object_or_404(Project, id=project_id)
-
-    # Formatea la descripción eliminando las etiquetas HTML
-    formatted_description = strip_tags(project.description)
-
     tasks = Task.objects.filter(project=project)
+    documents = Document.objects.filter(project=project)
+
+    # Formatea la descripción de cada tarea eliminando las etiquetas HTML
+    formatted_tasks = []
+    for task in tasks:
+        formatted_task = task
+        formatted_task.description = strip_tags(task.description)
+        formatted_tasks.append(formatted_task)
 
     if request.method == 'POST':
         form = TaskForm(request.POST)
-
         if form.is_valid():
             task = form.save(commit=False)
             task.project = project
@@ -238,9 +241,9 @@ def project_detail_admin(request, project_id):
 
     return render(request, 'projects/project_detail.html', {
         'project': project,
-        'formatted_description': formatted_description,  # Pasa la descripción formateada
-        'tasks': tasks,
-        'form': form,
+        'tasks': formatted_tasks,
+        'documents': documents,
+        'form': form,  # Asegúrate de que esta línea esté presente
     })
 
 class CustomLoginView(LoginView):
