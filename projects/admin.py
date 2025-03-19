@@ -1,11 +1,8 @@
-from django.contrib import admin
-from django.contrib.auth.models import Permission
-from django.utils.html import format_html
-from django.urls import reverse
-from .models import Project, Task, Document, Dependency, User
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from django.contrib import admin
 from .models import Project
 from .forms import ProjectForm
 
@@ -23,6 +20,9 @@ class ProjectAdmin(admin.ModelAdmin):
         'name', 'leader', 'description', 'dependency__name'
     )
     ordering = ('-request_date',)
+
+    class Media:
+        js = ('admin/js/sweetalert2@11.js', 'admin/js/custom_alert.js')  # Incluir SweetAlert2 y nuestro script
 
     def colored_status(self, obj):
         color_map = {
@@ -44,11 +44,16 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def acciones(self, obj):
         add_task_url = reverse('admin:projects_task_add') + f'?project={obj.id}'
+        delete_url = reverse('delete_project', args=[obj.id])
         return format_html(
-            '<a href="{}" class="button" title="Agregar Tarea">'
-            '<i class="fas fa-tasks"></i>'
+            '<a href="{}" class="btn-circle bg-btn-blue" title="Agregar Tarea">'
+            '<i class="fas fa-tasks text-white"></i>'
+            '</a> '
+            '<a href="#" class="btn-circle" title="Eliminar Proyecto" onclick="confirmDelete(\'{}\', event)">'
+            '<i class="fas fa-trash text-white"></i>'
             '</a>',
-            add_task_url
+            add_task_url,
+            delete_url
         )
 
     acciones.short_description = 'Acciones'
@@ -59,7 +64,6 @@ class ProjectAdmin(admin.ModelAdmin):
         if request.user.role == 'analyst_junior':
             # Analistas Junior ven solo los proyectos asignados a ellos
             qs = qs.filter(assigned_to=request.user)
-        # Analistas Líder y otros roles ven todos los proyectos
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -68,13 +72,33 @@ class ProjectAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
+        # 🚀 Acceder a los valores del formulario
+        print("📌 Nombre del Proyecto:", obj.name)
+        print("👤 Líder del Proyecto:", obj.leader)
+        print("📝 Descripción:", obj.description)
+        print("📅 Fecha de Solicitud:", obj.request_date)
+        print("📌 Tipo de Proyecto:", obj.project_type)
+        print("🏢 Departamento:", obj.department)
+        print("🏛️ Dependencia Solicitante:", obj.dependency)
+        print("📊 Estado del Proyecto:", obj.status)
+        print("📂 Documento del Proyecto:", obj.document if obj.document else "No subido")
+        print("👨‍💼 Creado por:", obj.created_by)
+        print("🎯 Asignado a:", obj.assigned_to if obj.assigned_to else "No asignado")
+        print("🔄 Asignado por:", obj.assigned_by if obj.assigned_by else "No asignado")
+        print("🚀 Fecha de Inicio:", obj.start_date if obj.start_date else "No definida")
+        print("🏁 Fecha de Finalización:", obj.end_date if obj.end_date else "No definida")
+
         if not obj.pk:
             obj.created_by = request.user
-            obj.dependency = request.user.dependency
+            if not request.user.dependency:
+                messages.error(request,
+                               "El usuario no tiene una dependencia asignada y es obligatoria para crear un proyecto.")
+                return  # Detenemos el guardado y no llamamos `super().save_model(...)`
+
         if 'assigned_to' in form.changed_data:
             obj.assigned_by = request.user
-        super().save_model(request, obj, form, change)
 
+        super().save_model(request, obj, form, change)
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_name_display', 'project', 'description', 'completed', 'deadline', 'is_overdue')
@@ -107,11 +131,9 @@ class DocumentAdmin(admin.ModelAdmin):
 
     view_word_link.short_description = 'Ver Documento'
 
-
 class DependencyAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'responsible', 'position')
     search_fields = ('name', 'email', 'responsible')
-
 
 class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'role', 'dependency')

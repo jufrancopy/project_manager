@@ -20,11 +20,11 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = '__all__'
-        widgets = {
-            'request_date': DateInput(attrs={'type': 'date'}),
-            'start_date': DateInput(attrs={'type': 'date'}),
-            'end_date': DateInput(attrs={'type': 'date'}),
-        }
+        # widgets = {
+        #     'request_date': DateInput(attrs={'type': 'date'}),
+        #     'start_date': DateInput(attrs={'type': 'date'}),
+        #     'end_date': DateInput(attrs={'type': 'date'}),
+        # }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

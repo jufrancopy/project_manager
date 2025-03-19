@@ -1,5 +1,4 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -18,6 +17,11 @@ from bs4 import BeautifulSoup
 import mammoth
 from projects.models import Document
 from django.utils.html import strip_tags
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from .models import Project
+from django.http import JsonResponse
+
 
 # Muestra los detalles de un proyecto, sus tareas y documentos
 def project_detail(request, project_id):
@@ -246,6 +250,18 @@ def project_detail_admin(request, project_id):
         'form': form,  # Asegúrate de que esta línea esté presente
     })
 
+def delete_project(request, project_id):
+    if request.method == 'DELETE':
+        project = get_object_or_404(Project, id=project_id)
+
+        # Verificar si el usuario tiene permisos para eliminar el proyecto
+        if request.user.has_perm('projects.delete_project'):
+            project.delete()
+            return JsonResponse({'status': 'success'}, status=200)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No tienes permisos para eliminar este proyecto.'}, status=403)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
 class CustomLoginView(LoginView):
     template_name = 'auth/login.html'  # Plantilla personalizada
     redirect_authenticated_user = True  # Redirige a usuarios ya autenticados
@@ -294,7 +310,6 @@ def view_word(request, document_id):
 
     # Pasa el contenido y los títulos a la plantilla
     return render(request, 'projects/view_word.html', {'content': content, 'headings': headings, 'document': document})
-
 
 def normalize_id(text):
     # Normaliza el texto (elimina tildes)

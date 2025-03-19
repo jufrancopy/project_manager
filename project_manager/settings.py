@@ -26,8 +26,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
     'projects',
-
+    'dependencies',
+    'tasks',
+    'users',
     'crispy_forms',
     'crispy_bootstrap5',
     'django_ckeditor_5',
@@ -55,6 +58,8 @@ JAZZMIN_SETTINGS = {
 
     # Colores del tema
     "theme": "light",  # Puedes usar "light" o "dark"
+
+    'custom_css': 'admin/css/custom.css',  # Ruta relativa desde static
 
     # Menú personalizado
     "topmenu_links": [
@@ -159,7 +164,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # settings.py
-AUTH_USER_MODEL = 'projects.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

@@ -1,81 +1,140 @@
-/* Estilos para el wrapper principal */
-.wrapper {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
+/* Estilo para el botón circular */
+.btn-circle {
+    display: inline-flex; /* Hace que el botón sea flexible */
+    justify-content: center; /* Centra el contenido horizontalmente */
+    align-items: center; /* Centra el contenido verticalmente */
+    width: 22px; /* Tamaño más pequeño del botón */
+    height: 22px; /* Tamaño más pequeño del botón */
+    background-color: red; /* Color de fondo del botón */
+    color: white; /* Color del ícono */
+    border-radius: 50%; /* Hace el botón circular */
+    text-align: center; /* Centra el texto dentro del botón */
+    border: none; /* Sin borde */
+    font-size: 9px; /* Tamaño del ícono más pequeño */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra ligera */
+    cursor: pointer; /* Cambia el cursor a mano cuando pasa sobre el botón */
+    transition: background-color 0.3s, transform 0.2s; /* Efectos de transición */
 }
 
-/* Estilos para el sidebar */
-#sidebar {
-    min-width: 250px;
-    max-width: 250px;
-    background: #343a40;
-    color: #fff;
-    transition: all 0.3s;
+/* Efecto al pasar el ratón sobre el botón */
+.btn-circle:hover {
+    background-color: darkred; /* Cambia el color de fondo cuando el ratón pasa por encima */
+    transform: scale(1.1); /* Aumenta el tamaño del botón ligeramente */
 }
 
-#sidebar.active {
-    margin-left: -250px; /* Oculta el sidebar */
+/* Asegura que el ícono esté centrado dentro del botón */
+.btn-circle i {
+    margin: 0;
+}
+/* Azul */
+.bg-btn-blue {
+    background-color: #007bff;
+    color: white;
 }
 
-#sidebar .sidebar-header {
-    padding: 20px;
-    background: #2c3e50;
+.bg-btn-blue:hover {
+    background-color: #0056b3;
 }
 
-#sidebar ul.components {
-    padding: 20px 0;
+/* Azul Claro */
+.bg-btn-lightblue {
+    background-color: #66b3ff;
+    color: white;
 }
 
-#sidebar ul li a {
-    padding: 10px 20px;
-    font-size: 1.1em;
-    display: block;
-    color: #fff;
-    text-decoration: none;
+.bg-btn-lightblue:hover {
+    background-color: #3399ff;
 }
 
-#sidebar ul li a:hover {
-    background: #4a5568;
+/* Verde */
+.bg-btn-green {
+    background-color: #28a745;
+    color: white;
 }
 
-#sidebar ul li a i {
-    margin-right: 10px;
+.bg-btn-green:hover {
+    background-color: #218838;
 }
 
-/* Estilos para el contenido principal */
-#content {
-    flex-grow: 1; /* Ocupa todo el espacio restante */
-    transition: all 0.3s;
-
+/* Verde Claro */
+.bg-btn-lightgreen {
+    background-color: #7ed957;
+    color: white;
 }
 
-#content.active {
-    margin-left: 0; /* Elimina el margen cuando el sidebar está colapsado */
+.bg-btn-lightgreen:hover {
+    background-color: #56cc2a;
 }
 
-/* Estilos para la barra de navegación superior */
-.navbar {
-    padding: 15px 10px;
-    background: #343a40;
-    border: none;
-    border-radius: 0;
-    margin-bottom: 0;
+/* Naranja */
+.bg-btn-orange {
+    background-color: #fd7e14;
+    color: white;
 }
 
-.navbar-btn {
-    box-shadow: none;
-    outline: none !important;
-    border: none;
+.bg-btn-orange:hover {
+    background-color: #e46a12;
 }
 
-/* Estilos para el pie de página */
-footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: #343a40;
-    color: #fff;
-    text-align: center;
-    padding: 10px 0;
+/* Naranja Claro */
+.bg-btn-lightorange {
+    background-color: #ffaf7d;
+    color: white;
+}
+
+.bg-btn-lightorange:hover {
+    background-color: #ff8e40;
+}
+
+/* Rojo */
+.bg-btn-red {
+    background-color: #dc3545;
+    color: white;
+}
+
+.bg-btn-red:hover {
+    background-color: #c82333;
+}
+
+/* Amarillo */
+.bg-btn-yellow {
+    background-color: #ffc107;
+    color: white;
+}
+
+.bg-btn-yellow:hover {
+    background-color: #e0a800;
+}
+
+/* Gris */
+.bg-btn-grey {
+    background-color: #6c757d;
+    color: white;
+}
+
+.bg-btn-grey:hover {
+    background-color: #5a6268;
+}
+
+/* Negro */
+.bg-btn-black {
+    background-color: #343a40;
+    color: white;
+}
+
+.bg-btn-black:hover {
+    background-color: #23272b;
+}
+
+/* Blanco con borde (para contraste en fondos oscuros) */
+.bg-btn-white {
+    background-color: white;
+    color: #343a40;
+    border: 2px solid #343a40;
+}
+
+.bg-btn-white:hover {
+    background-color: #f8f9fa;
+    color: #343a40;
+    border-color: #23272b;
 }
