@@ -1,26 +1,28 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.mail import send_mail
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import UpdateView
-from projects.models import Project, Task, Document, User
-from projects.forms import ProjectForm, TaskForm, DocumentForm, UserRegisterForm
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView
+from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-import re
-import unicodedata
+from django.utils.html import strip_tags
+
 from bs4 import BeautifulSoup
 import mammoth
-from projects.models import Document
-from django.utils.html import strip_tags
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+import re
+import unicodedata
+
 from .models import Project
-from django.http import JsonResponse
+from documents.models import Document
+from tasks.models import Task
+from tasks.forms import TaskForm
+from projects.forms import ProjectForm
+from django.views.generic import UpdateView
+from django.utils.html import strip_tags  # Importa strip_tags
 
 
 # Muestra los detalles de un proyecto, sus tareas y documentos
@@ -28,10 +30,33 @@ def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     tasks = Task.objects.filter(project=project)
     documents = Document.objects.filter(project=project)
+
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            task = form.save(commit=False)
+            task.project = project
+            task.save()
+            return redirect('project_detail', project_id=project_id)
+    else:
+        form = TaskForm()
+
+    # Procesa la descripción del proyecto
+    formatted_description = strip_tags(project.description)
+
+    # Procesa las descripciones de las tareas
+    formatted_tasks = []
+    for task in tasks:
+        formatted_task = task
+        formatted_task.description = strip_tags(task.description)
+        formatted_tasks.append(formatted_task)
+
     return render(request, 'projects/project_detail.html', {
         'project': project,
-        'tasks': tasks,
+        'tasks': formatted_tasks,  # Pasa la lista de tareas formateadas
         'documents': documents,
+        'form': form,
+        'formatted_description': formatted_description,
     })
 
 # Agrega un nuevo proyecto
@@ -78,74 +103,7 @@ def add_project(request):
 
     return render(request, "projects/add_project.html", {"form": form})
 
-# Agrega una tarea a un proyecto específico
-def add_task(request, project_id):
-    if request.user.role != 'analyst':
-        raise PermissionDenied("Solo los analistas pueden agregar tareas.")
 
-    project = get_object_or_404(Project, pk=project_id)
-
-    if request.method == 'POST':
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            try:
-                task = form.save(commit=False)
-                task.project = project
-                task.save()
-                messages.success(request, "Tarea agregada exitosamente.")
-                return redirect('project_detail', project_id=project.id)
-            except Exception as e:
-                messages.error(request, f"Error al agregar la tarea: {str(e)}")
-        else:
-            messages.error(request, "Por favor, corrige los errores en el formulario.")
-    else:
-        form = TaskForm()
-
-    return render(request, 'projects/add_task.html', {'form': form, 'project': project})
-
-# Sube un documento a un proyecto específico
-def upload_document(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                document = form.save(commit=False)
-                document.project = project
-                document.uploaded_by = request.user
-                document.save()
-                messages.success(request, "Documento subido exitosamente.")
-                return redirect('project_detail', project_id=project.id)
-            except Exception as e:
-                messages.error(request, f"Error al subir el documento: {str(e)}")
-    else:
-        form = DocumentForm()
-    return render(request, 'projects/upload_document.html', {'form': form, 'project': project})
-
-# Panel de control
-def dashboard(request):
-    if request.user.role == 'analyst_leader':
-        # Los Analistas Líder ven todos los proyectos de su dependencia
-        projects = Project.objects.filter(dependency=request.user.dependency)
-    elif request.user.role == 'analyst_junior':
-        # Los Analistas Junior ven solo los proyectos asignados a ellos
-        projects = Project.objects.filter(assigned_to=request.user)
-    else:
-        projects = Project.objects.filter(created_by=request.user)
-
-    pending_tasks = Task.objects.filter(project__in=projects, completed=False).count()
-    completed_tasks = Task.objects.filter(project__in=projects, completed=True).count()
-    total_projects = projects.count()
-
-    context = {
-        'pending_tasks': pending_tasks,
-        'completed_tasks': completed_tasks,
-        'total_projects': total_projects,
-        'is_admin': request.user.is_staff or request.user.is_superuser,
-    }
-    return render(request, 'projects/dashboard.html', context)
-
-# Cambia el estado de un proyecto
 def change_project_status(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
 
@@ -196,29 +154,6 @@ class ChangeProjectStatusView(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
         )
         messages.success(self.request, f"Estado del proyecto actualizado a: {self.object.get_status_display()}.")
         return response
-
-@user_passes_test(lambda u: u.is_superuser)  # Solo el superusuario puede acceder
-@user_passes_test(lambda u: u.is_superuser or u.role == 'analyst_leader')  # Superusuarios y analistas
-def register_user(request):
-    if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.save()
-            messages.success(request, "Usuario registrado exitosamente.")
-            return redirect('dashboard')
-    else:
-        form = UserRegisterForm()
-    return render(request, 'users/register_user.html', {'form': form})
-
-@login_required
-def dependency_dashboard(request):
-    if request.user.role != 'applicant':
-        raise PermissionDenied("Solo los solicitantes pueden acceder a esta vista.")
-
-    # Obtener los proyectos de la dependencia del usuario
-    projects = Project.objects.filter(dependency=request.user.dependency)
-    return render(request, 'dependency_dashboard.html', {'projects': projects})
 
 @staff_member_required
 def project_detail_admin(request, project_id):

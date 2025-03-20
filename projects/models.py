@@ -108,6 +108,7 @@ class Project(models.Model):
 
         # Si se subió un archivo, crea un registro en Document
         if self.document:
+            from documents.models import Document  # Importacion local
             Document.objects.create(
                 project=self,  # Relaciona el documento con este proyecto
                 file=self.document,  # Asigna el archivo subido

@@ -1,8 +1,12 @@
-from django.db import models
 from django.conf import settings
+from django.utils import timezone
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+from django.db import models
+from django.utils.html import strip_tags
 from projects.models import Project
 
-# Create your models here.
+
 class Task(models.Model):
     STATUS_CHOICES = [
         ('request', 'Solicitud de Elaboración de Proyecto'),
@@ -72,3 +76,4 @@ class Task(models.Model):
 
     def __str__(self):
         return self.get_name_display()
+

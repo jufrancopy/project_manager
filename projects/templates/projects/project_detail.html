@@ -82,6 +82,7 @@
                                     <th>Descripción</th>
                                     <th>Fecha Límite</th>
                                     <th>Asignado a</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -102,15 +103,20 @@
                                     </td>
                                     <td>
                                         <span class="badge
-                                            {% if task.completed %}bg-success
-                                            {% else %}bg-warning
-                                            {% endif %}">
-                                            {{ task.get_completed_display }}
+                                            {% if task.completed %}bg-success{% else %}bg-warning{% endif %}">
+                                            {% if task.completed %}Culminado{% else %}En Curso{% endif %}
                                         </span>
                                     </td>
                                     <td>{{ task.description|default:"Sin descripción" }}</td>
                                     <td>{{ task.deadline|date:"d/m/Y" }}</td>
                                     <td>{{ task.assigned_to.username|default:"No asignado" }}</td>
+                                    <td>
+                                          <button class="btn btn-sm {% if task.completed %}btn-success{% else %}btn-warning{% endif %} toggle-completed"
+                                                data-task-id="{{ task.id }}"
+                                                data-completed="{{ task.completed|lower }}">
+                                            {% if task.completed %}Culminado{% else %}En Curso{% endif %}
+                                        </button>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -137,9 +143,59 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializa Select2 para todos los campos con la clase select2
         $('select.select2').select2({
-            placeholder: "Selecciona una opción",  // Texto de placeholder
-            allowClear: true,  // Permite borrar la selección
+            placeholder: "Selecciona una opción",
+            allowClear: true,
+        });
+
+        // Actualizar Completed de Tareas
+        const toggleButtons = document.querySelectorAll('.toggle-completed');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.dataset.taskId;
+                const completed = this.dataset.completed === 'true';
+                const newCompleted = !completed;
+
+                // Agregar indicador de carga
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
+                this.disabled = true;
+
+                fetch(`/tasks/${taskId}/toggle_completed/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ completed: newCompleted })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.classList.remove(completed ? 'btn-success' : 'btn-warning');
+                        this.classList.add(newCompleted ? 'btn-success' : 'btn-warning');
+                        this.textContent = newCompleted ? 'Culminado' : 'En Curso';
+                        this.dataset.completed = newCompleted.toString();
+                        // Actualizar el badge de estado en la misma fila
+                        const statusBadge = this.parentElement.parentElement.querySelector('td span.badge');
+                        statusBadge.classList.remove(completed ? 'bg-success' : 'bg-warning');
+                        statusBadge.classList.add(newCompleted ? 'bg-success' : 'bg-warning');
+                        statusBadge.textContent = newCompleted ? 'Culminado' : 'En Curso';
+                    } else {
+                        alert('Error al actualizar la tarea.');
+                    }
+                    // Remover indicador de carga y habilitar botón
+                    this.innerHTML = newCompleted ? 'Culminado' : 'En Curso';
+                    this.disabled = false;
+                })
+                .catch(error => {
+                    // Manejo de errores global
+                    alert('Error al actualizar la tarea. Por favor, inténtalo de nuevo.');
+                    this.innerHTML = completed ? 'Culminado' : 'En Curso';
+                    this.disabled = false;
+                });
+            });
         });
     });
 </script>
+
 {% endblock %}

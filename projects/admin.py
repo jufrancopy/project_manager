@@ -1,11 +1,9 @@
 from django.contrib import admin, messages
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
 from .models import Project
 from .forms import ProjectForm
-
+from users.models import User
 
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectForm  # Usa el formulario personalizado
@@ -43,7 +41,7 @@ class ProjectAdmin(admin.ModelAdmin):
     colored_status.short_description = 'Estado'
 
     def acciones(self, obj):
-        add_task_url = reverse('admin:projects_task_add') + f'?project={obj.id}'
+        add_task_url = reverse('admin:tasks_task_add') + f'?project={obj.id}'
         delete_url = reverse('delete_project', args=[obj.id])
         return format_html(
             '<a href="{}" class="btn-circle bg-btn-blue" title="Agregar Tarea">'
@@ -100,78 +98,4 @@ class ProjectAdmin(admin.ModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'get_name_display', 'project', 'description', 'completed', 'deadline', 'is_overdue')
-    list_filter = ('completed', 'deadline', 'project')
-    search_fields = ('project__name', 'description')
-    list_editable = ('completed',)
-    raw_id_fields = ('project',)
-
-    def get_name_display(self, obj):
-        return obj.get_name_display()
-
-    get_name_display.short_description = 'Estado'
-
-
-class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('filename', 'project', 'uploaded_by', 'upload_date', 'view_word_link')
-    list_filter = ('upload_date', 'project', 'uploaded_by')
-    search_fields = ('file', 'project__name', 'uploaded_by__username')
-    date_hierarchy = 'upload_date'
-    readonly_fields = ('upload_date',)
-
-    def view_word_link(self, obj):
-        if obj.file:
-            try:
-                url = reverse('view_word', kwargs={'document_id': obj.id})  # Asegúrate de usar el nombre correcto
-                return format_html('<a href="{}">Ver documento</a>', url)
-            except Exception as e:
-                return f"Error en URL: {e}"
-        return "No hay documento"
-
-    view_word_link.short_description = 'Ver Documento'
-
-class DependencyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'responsible', 'position')
-    search_fields = ('name', 'email', 'responsible')
-
-class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'role', 'dependency')
-    list_filter = ('role', 'dependency')
-    search_fields = ('username', 'email', 'dependency__name')
-    readonly_fields = ('date_joined',)  # Campos de solo lectura
-    actions = ['make_analyst']  # Acciones personalizadas
-
-    # Campos personalizados para el formulario de edición
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('email', 'role', 'dependency')}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-    )
-
-    # Campos personalizados para el formulario de creación
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'role', 'dependency'),
-        }),
-    )
-
-    def make_analyst(self, request, queryset):
-        queryset.update(role='analyst')
-
-    make_analyst.short_description = "Cambiar rol a Analista"
-
-    def save_model(self, request, obj, form, change):
-        # Si se está creando un nuevo usuario o cambiando la contraseña
-        if 'password' in form.changed_data:
-            obj.set_password(form.cleaned_data['password'])  # Genera el hash de la contraseña
-        super().save_model(request, obj, form, change)
-
-
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(Task, TaskAdmin)
-admin.site.register(Document, DocumentAdmin)
-admin.site.register(Dependency, DependencyAdmin)
-admin.site.register(User, UserAdmin)

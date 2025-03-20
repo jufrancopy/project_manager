@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'dependencies',
     'tasks',
     'users',
+    'documents',
     'crispy_forms',
     'crispy_bootstrap5',
     'django_ckeditor_5',
@@ -78,14 +79,14 @@ JAZZMIN_SETTINGS = {
         "projects.Task": "fas fa-tasks",
         "projects.Document": "fas fa-file",
     },
-    "custom_links": {
-            "auth": [{
-                "name": "Dashboard",
-                "url": "analyst_leader_dashboard",
-                "icon": "fas fa-tachometer-alt",
-                "permissions": ["auth.view_user"],  # Solo visible para usuarios con permisos
-            }]
-        },
+    # "custom_links": {
+    #         "auth": [{
+    #             "name": "Dashboard",
+    #             "url": "analyst_leader_dashboard",
+    #             "icon": "fas fa-tachometer-alt",
+    #             "permissions": ["auth.view_user"],  # Solo visible para usuarios con permisos
+    #         }]
+    #     },
 
     # Cambiar el texto del pie de página
     "copyright": "Project Manager 2025 - Julio Franco",
