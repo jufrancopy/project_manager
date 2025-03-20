@@ -5,6 +5,7 @@ from django.contrib import messages
 from projects.models import Project
 from tasks.models import Task
 from .forms import UserRegisterForm
+from django.contrib.auth.decorators import login_required
 
 def dashboard(request):
     if request.user.role == 'analyst_leader':
@@ -39,3 +40,7 @@ def register_user(request):
     else:
         form = UserRegisterForm()
     return render(request, 'users/register_user.html', {'form': form})
+
+@login_required
+def profile_view(request):
+    return render(request, 'users/profile.html')

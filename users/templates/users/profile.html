@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Información de Usuario</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                    <p>{{ user.email }}</p>
+                </div>
+
+                {% if user.first_name or user.last_name %}
+                <div class="mb-3">
+                    <strong><i class="fas fa-user me-2"></i>Nombre completo:</strong>
+                    <p>{{ user.first_name }} {{ user.last_name }}</p>
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <strong><i class="fas fa-calendar me-2"></i>Fecha de registro:</strong>
+                    <p>{{ user.date_joined|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Mis Proyectos</h5>
+                <a href="{% url 'add_project' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus-circle me-1"></i> Nuevo Proyecto
+                </a>
+            </div>
+            <div class="card-body">
+                {% if projects %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Fecha de creación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>{{ project.name }}</td>
+                                <td>{{ project.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge {% if project.status == 'Completado' %}bg-success{% elif project.status == 'En progreso' %}bg-primary{% else %}bg-warning{% endif %}">
+                                        {{ project.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-info me-1">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'edit_project' project.id %}" class="btn btn-sm btn-warning me-1">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                    <h5>No tienes proyectos todavía</h5>
+                    <p class="text-muted">Comienza creando tu primer proyecto</p>
+                    <a href="{% url 'add_project' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-1"></i> Crear proyecto
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Actividad Reciente</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% if activities %}
+                        {% for activity in activities %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-history me-2 text-muted"></i>
+                                    {{ activity.description }}
+                                </div>
+                                <small class="text-muted">{{ activity.created_at|timesince }} atrás</small>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-center py-4">
+                            <i class="fas fa-history fa-2x text-muted mb-3"></i>
+                            <p class="mb-0">No hay actividad reciente</p>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
